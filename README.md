@@ -26,7 +26,7 @@ This generator is tailored to my needs. Although is flexible and capable to solv
   - Ideal for single pages like Home, About...
   - `Page` has access to the `Context`, so you in exactly the same way you can make Index pages trivially
 - You can use `PageProvider` to instantiate dynamically other pages
-  - This let's you instantiate every instance from loaded content. Like blog posts.
+  - This lets you instantiate every instance from loaded content. Like blog posts.
 - Pages are very flexible
   - Just require a path to know where the page goes in the final site. Nothing else.
   - In the page you must return the `String`, usually HTML, to be saved to disk
@@ -39,6 +39,25 @@ This generator is tailored to my needs. Although is flexible and capable to solv
   - Go basic and return inlined Swift interpolated HTML strings
   - Or use templates from HTML files
   - Or use any typed Swift HTML library
+
+## Usage
+
+`Genesis` is a Swift package and as such you just need to depend on it.
+
+```swift
+.package(url: "https://github.com/alexito4/Genesis.git", branch: "main")
+```
+
+And include the module you need on your target:
+
+```swift
+// The engine
+.product(name: "Genesis", package: "Genesis")
+
+// Markdown support
+.product(name: "GenesisMarkdown", package: "Genesis"),
+```
+
 
 ## Example
 

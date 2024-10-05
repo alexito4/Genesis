@@ -6,6 +6,7 @@ let package = Package(
     platforms: [.macOS(.v14)],
     dependencies: [
         .package(path: ".."),
+//        .package(url: "https://github.com/alexito4/Genesis.git", branch: "main")
     ],
     targets: [
         .executableTarget(
