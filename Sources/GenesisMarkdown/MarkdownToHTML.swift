@@ -157,10 +157,11 @@ public struct MarkdownToHTML: MarkupVisitor {
     /// - Returns: A HTML <pre> element with <code> inside, marked with
     /// CSS to remember which language was used.
     public func visitCodeBlock(_ codeBlock: Markdown.CodeBlock) -> String {
-        if let language = codeBlock.language {
-            #"<pre><code class="language-\#(language.lowercased())">\#(codeBlock.code)</code></pre>"#
+        let escapedCode = codeBlock.code.poorHtmlEncoded()
+        return if let language = codeBlock.language {
+            #"<pre><code class="language-\#(language.lowercased())">\#(escapedCode)</code></pre>"#
         } else {
-            #"<pre><code>\#(codeBlock.code)</code></pre>"#
+            #"<pre><code>\#(escapedCode)</code></pre>"#
         }
     }
 
@@ -437,5 +438,16 @@ extension Markup {
     /// A small helper that determines whether this markup or any parent is a list.
     var isInsideList: Bool {
         self is ListItemContainer || parent?.isInsideList == true
+    }
+}
+
+extension String {
+    func poorHtmlEncoded() -> String {
+        return self
+            .replacingOccurrences(of: "&", with: "&amp;")    // Ampersand (&)
+            .replacingOccurrences(of: "<", with: "&lt;")     // Less than (<)
+            .replacingOccurrences(of: ">", with: "&gt;")     // Greater than (>)
+            .replacingOccurrences(of: "\"", with: "&quot;")  // Double quotes (")
+            .replacingOccurrences(of: "'", with: "&#39;")    // Single quote (')
     }
 }
