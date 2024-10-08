@@ -1,5 +1,4 @@
 import Foundation
-import Genesis
 
 /// Conformance for Content Bundles, `
 /// a.k.a content items that are not just a markdown file, but that also include resources in the same folder.
