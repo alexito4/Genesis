@@ -52,7 +52,11 @@ public actor Context {
     ///   - rootURL: The URL of the root directory, where other key
     ///   folders are located.
     ///   - buildDirectoryPath: The path where the artifacts are generated.
-    public init(for site: any Site, rootURL: URL, buildDirectoryPath: String) throws {
+    public init(
+        for site: any Site,
+        rootURL: URL,
+        buildDirectoryPath: String
+    ) throws {
         self.site = site
         
         self.rootDirectory = rootURL
@@ -70,9 +74,11 @@ public actor Context {
     ///   - buildDirectoryPath: The path where the artifacts are generated.
     ///   The default is "Build".
     init(for site: any Site, from file: StaticString, buildDirectoryPath: String) throws {
+        let sourceBuildDirectories = try URL.selectDirectories(from: file)
+        assert(sourceBuildDirectories.build == sourceBuildDirectories.source, "Detected Build and Source directories are not the same, so is this running as a Mac app? Fine, but was not expected.")
         try self.init(
             for: site,
-            rootURL: URL.packageDirectory(from: file),
+            rootURL: sourceBuildDirectories.source,
             buildDirectoryPath: buildDirectoryPath
         )
     }
@@ -116,12 +122,10 @@ public extension Context {
         
     /// Removes all content from the Build folder, so we're okay to recreate it.
     func clearBuildFolder() throws(PublishingError) {
-        if FileManager.default.fileExists(atPath: buildDirectory.path()) {
-            do {
-                try FileManager.default.removeItem(at: buildDirectory)
-            } catch {
-                throw .failedToRemoveBuildDirectory(buildDirectory)
-            }
+        do {
+            try FileManager.default.removeItem(at: buildDirectory)
+        } catch {
+            print("Could not remove buildDirectory (\(buildDirectory)), but it will be re-created anyway.")
         }
 
         do {
