@@ -17,35 +17,35 @@ public extension Site {
 public actor Context {
     /// The site that is currently being built.
     public nonisolated let site: any Site
-    
+
     /// The root directory for the user's website package.
-    private(set) public var rootDirectory: URL
-    
+    public private(set) var rootDirectory: URL
+
     /// The directory containing their custom assets.
-    private(set) public var assetsDirectory: URL
-    
+    public private(set) var assetsDirectory: URL
+
     /// The directory containing their Markdown files.
-    private(set) public var contentDirectory: URL
-    
+    public private(set) var contentDirectory: URL
+
     /// The directory containing includes to use with the `Include` element.
 //    private(set) public var includesDirectory: URL
-    
+
     /// The directory containing their final, built website.
-    private(set) public var buildDirectory: URL
-    
+    public private(set) var buildDirectory: URL
+
     /// Any warnings that have been issued during a build.
     private(set) var warnings = [String]()
-    
+
     /// All the Markdown content this user has inside their Content folder.
-    private(set) public var allContent = [any Content]()
-    
+    public private(set) var allContent = [any Content]()
+
     /// The sitemap for this site. Yes, using an array is less efficient when
     /// using `contains()`, but it allows us to list pages in a sensible order.
     /// (Technically speaking the order doesn't matter, but if the order changed
     /// randomly every time a build took place it would be annoying for source
     /// control!)
-    private(set) public var siteMap = [Location]()
-    
+    public private(set) var siteMap = [Location]()
+
     /// Creates a new publishing context for a specific site, setting a root URL.
     /// - Parameters:
     ///   - site: The site we're currently publishing.
@@ -58,14 +58,14 @@ public actor Context {
         buildDirectoryPath: String
     ) throws {
         self.site = site
-        
-        self.rootDirectory = rootURL
+
+        rootDirectory = rootURL
         assetsDirectory = rootDirectory.appending(path: "Assets")
         contentDirectory = rootDirectory.appending(path: "Content")
 //        includesDirectory = rootDirectory.appending(path: "Includes")
         buildDirectory = rootDirectory.appending(path: buildDirectoryPath)
     }
-    
+
     /// Creates a new publishing context for a specific site, providing the path to
     /// one of the user's file. This then navigates upwards to find the root directory.
     /// - Parameters:
@@ -82,7 +82,7 @@ public actor Context {
             buildDirectoryPath: buildDirectoryPath
         )
     }
-    
+
     public func reportWarning(
         _ warning: String
     ) {
@@ -92,14 +92,13 @@ public actor Context {
 
 /// API for each step of the generation
 public extension Context {
-    
     func loadContent(
         from loaders: sending [any ContentLoader]
     ) async throws {
         // TODO: this should be a concurrent map
         for loader in loaders {
             let loadedContent = try await loader.load(context: self)
-            
+
             for content in loadedContent {
                 if allContent.contains(where: { $0.path == content.path }) {
                     throw PublishingError.duplicateContentWithSamePath(content.path)
@@ -108,7 +107,7 @@ public extension Context {
             }
         }
     }
-    
+
     func mutateContent<T: Content>(
         path: String,
         as: T.Type,
@@ -119,7 +118,7 @@ public extension Context {
         mutate(&content)
         allContent[index] = content
     }
-        
+
     /// Removes all content from the Build folder, so we're okay to recreate it.
     func clearBuildFolder() throws(PublishingError) {
         do {
@@ -134,7 +133,7 @@ public extension Context {
             throw .failedToCreateBuildDirectory(buildDirectory)
         }
     }
-    
+
     /// Renders the pages to the output folder.
     func generateStaticPages(
         pages: sending [any Page]
@@ -142,9 +141,8 @@ public extension Context {
         for page in pages {
             try await render(page)
         }
-        
     }
-        
+
     /// Runs the given `PageProvider`s and renders all `Page`s returned from them.
     /// Renders the pages to the output folder.
     func generateContentPages(
@@ -155,20 +153,20 @@ public extension Context {
             try await generateStaticPages(pages: pages)
         }
     }
-    
+
     private func render(_ staticPage: any Page) async throws {
         let outputString = try await staticPage.render(context: self)
 
         let outputDirectory = buildDirectory.appending(path: staticPage.path)
-        
+
         try write(
             outputString,
             to: outputDirectory,
             fileName: staticPage.fileName,
             priority: staticPage.priority
-        )//isHomePage ? 1 : 0.9)
+        ) // isHomePage ? 1 : 0.9)
     }
-    
+
     /// Writes a single string of data to a URL.
     /// - Parameters:
     ///   - string: The string to write.
@@ -189,7 +187,7 @@ public extension Context {
         }
 
         let outputURL = directory.appending(path: fileName)
-        
+
         // Check the sitemap
         let siteMapPath = if fileName == "index.html" {
             directory.relative(to: buildDirectory)
@@ -199,7 +197,7 @@ public extension Context {
         if siteMap.contains(siteMapPath) {
             throw PublishingError.duplicateContentWithSamePath(siteMapPath)
         }
-        
+
         do {
             try string.write(to: outputURL, atomically: true, encoding: .utf8)
 
@@ -211,14 +209,14 @@ public extension Context {
             throw PublishingError.failedToCreateBuildFile(outputURL)
         }
     }
-    
+
     /// Copy the assets in the `assetsDirectory` to the `buildDirectory.
     func copyAssets() throws {
         let assets = try FileManager.default.contentsOfDirectory(
             at: assetsDirectory,
             includingPropertiesForKeys: nil
         )
-        
+
         for asset in assets {
             try FileManager.default.copyItem(
                 at: assetsDirectory.appending(path: asset.lastPathComponent),
@@ -226,7 +224,7 @@ public extension Context {
             )
         }
     }
-    
+
     func checkWarnings() {
         if warnings.isEmpty == false {
             print("Publish completed with warnings:")
@@ -244,17 +242,17 @@ public enum SitemapPriority: Sendable {
     case low
     /// Indicates the location shouldn't be included in the sitemap
     case hidden
-    
+
     var value: Double {
         switch self {
         case .highest:
-            return 1
+            1
         case .default:
-            return 0.5
+            0.5
         case .low:
-            return 0.4
+            0.4
         case .hidden:
-            return 0 // check if it's hidden before calling this property
+            0 // check if it's hidden before calling this property
         }
     }
 }
@@ -265,10 +263,10 @@ public extension Context {
         // could memoize?
         allContent.compactMap { $0 as? T }
     }
-    
+
     // for when you want to filter to a protocol
     // it should inherit from Content protocol, but not sure how to pull it off with the type system right now since constrainint it means that you can't pass the protocol.sself since that doesn't conform to the protocol.
     func content<T>(of type: T.Type) -> [T] {
-        return allContent.compactMap { $0 as? T }
+        allContent.compactMap { $0 as? T }
     }
 }

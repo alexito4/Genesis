@@ -1,10 +1,3 @@
-//
-// PublishingError.swift
-// Ignite
-// https://www.github.com/twostraws/Ignite
-// See LICENSE for license information.
-//
-
 import Foundation
 
 /// All the primary errors that can occur when publishing a site. There are other
@@ -12,7 +5,7 @@ import Foundation
 /// something is seriously wrong.
 public enum PublishingError: LocalizedError {
     case duplicateContentWithSamePath(String)
-    
+
     /// Could not find the site's package directory.
     case missingPackageDirectory
 
@@ -68,23 +61,23 @@ public enum PublishingError: LocalizedError {
         switch self {
         case .missingPackageDirectory:
             "Unable to locate Package.swift."
-        case .badMarkdown(let url):
+        case let .badMarkdown(url):
             "Markdown could not be parsed: \(url.absoluteString)."
-        case .unopenableFile(let reason):
+        case let .unopenableFile(reason):
             "Failed to open file: \(reason)."
-        case .failedToRemoveBuildDirectory(let url):
+        case let .failedToRemoveBuildDirectory(url):
             "Failed to clear the build folder: \(url.absoluteString)."
-        case .failedToCreateBuildDirectory(let url):
+        case let .failedToCreateBuildDirectory(url):
             "Failed to create the build folder: \(url.absoluteString)."
-        case .failedToCreateBuildFile(let url):
+        case let .failedToCreateBuildFile(url):
             "Failed to create the build folder: \(url.absoluteString)."
-        case .missingSiteResource(let name):
+        case let .missingSiteResource(name):
             "Failed to locate critical site resource: \(name)."
-        case .failedToCopySiteResource(let name):
+        case let .failedToCopySiteResource(name):
             "Failed to copy critical site resource to build folder: \(name)."
-        case .missingSyntaxHighlighter(let name):
+        case let .missingSyntaxHighlighter(name):
             "Failed to locate syntax highlighter JavaScript: \(name)."
-        case .failedToLoadSyntaxHighlighter(let name):
+        case let .failedToLoadSyntaxHighlighter(name):
             "Failed to load syntax highlighter JavaScript: \(name)."
         case .failedToWriteSyntaxHighlighters:
             "Failed to write syntax highlighting JavaScript."
@@ -92,13 +85,13 @@ public enum PublishingError: LocalizedError {
             "Failed to generate RSS feed."
         case .failedToWriteRobots:
             "Failed to write robots.txt file."
-        case .missingNamedLayout(let name):
+        case let .missingNamedLayout(name):
             "Failed to find layout named \(name)."
         case .missingDefaultLayout:
             "Your site must provide at least one layout in order to render Markdown."
-        case .duplicateDirectory(let url):
+        case let .duplicateDirectory(url):
             "Duplicate URL found: \(url). This is a fatal error."
-        case .duplicateContentWithSamePath(let path):
+        case let .duplicateContentWithSamePath(path):
             "Duplicated content loaded: \(path)"
         }
     }

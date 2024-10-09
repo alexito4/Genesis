@@ -15,6 +15,6 @@ public extension Content {
     /// Get the full URL to this content. Useful for creating feed XML that includes
     /// this content.
     func path(in site: any Site) -> String {
-        site.url.appending(path: self.path).absoluteString
+        site.url.appending(path: path).absoluteString
     }
 }

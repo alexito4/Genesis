@@ -1,10 +1,3 @@
-//
-// Language.swift
-// Ignite
-// https://www.github.com/twostraws/Ignite
-// See LICENSE for license information.
-//
-
 import Foundation
 
 // It's difficult to find a list of actual language codes
@@ -279,4 +272,5 @@ public enum Language: String, Sendable {
     case zhuang, chuang = "za"
     case zulu = "zu"
 }
+
 // swiftlint:enable type_body_length

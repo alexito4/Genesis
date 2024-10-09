@@ -9,14 +9,14 @@ public protocol ContentWithResources: Content {
 public extension Context {
     /// Copy the assets from each `ContentWithResources` to the output directory
     func copyContentResources() throws {
-        let allContent = self.content(of: (any ContentWithResources).self)
-        
+        let allContent = content(of: (any ContentWithResources).self)
+
         for content in allContent {
             let contentFolder = content.resourcesFolder
-            
+
             let resources = try FileManager.default.contentsOfDirectory(at: contentFolder, includingPropertiesForKeys: nil)
                 .filter { ![".DS_Store", "index.md"].contains($0.lastPathComponent) }
-            
+
             let outputDirectory = buildDirectory.appending(path: content.path)
 
             for resource in resources {

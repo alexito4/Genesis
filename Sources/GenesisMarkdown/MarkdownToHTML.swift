@@ -1,9 +1,3 @@
-//
-// MarkdownToHTML.swift
-// Modified from Ignite
-// https://www.github.com/twostraws/Ignite
-//
-
 import Foundation
 import Markdown
 
@@ -12,7 +6,7 @@ public struct ParsedMarkdown: Sendable {
         case unopenableFile(String)
         case badMarkdown(URL)
     }
-    
+
     /// A dictionary of metadata specified at the top of the file as YAML front matter.
     /// See https://jekyllrb.com/docs/front-matter/ for information.
     public var frontMatter = [String: String]()
@@ -25,17 +19,17 @@ public struct ParsedMarkdown: Sendable {
 
     /// The body text of this file, which includes its title by default.
     public var body: String
-    
+
     public var tags: [String] {
         guard let tagsString = frontMatter["tags"] else {
             return []
         }
         return tagsString.split(separator: "','").map(String.init)
     }
-    
+
     /// Original Markdown document tree. Can be manipulated at any stage to recreate the body.
     public nonisolated(unsafe) let document: Document
-    
+
     /// Parses Markdown provided from a filesystem URL.
     /// - Parameters:
     ///   - url: The filesystem URL to load.
@@ -48,14 +42,14 @@ public struct ParsedMarkdown: Sendable {
         } catch {
             throw .unopenableFile(error.localizedDescription)
         }
-        self.frontMatter = Self.processMetadata(for: &markdown)
-        self.document = Document(parsing: markdown)
-        let visitor = MarkdownToHTML(document: self.document, removeTitleFromBody: true)
-        self.title = frontMatter["title"] ?? visitor.title
-        self.description = visitor.description
-        self.body = visitor.body
+        frontMatter = Self.processMetadata(for: &markdown)
+        document = Document(parsing: markdown)
+        let visitor = MarkdownToHTML(document: document, removeTitleFromBody: true)
+        title = frontMatter["title"] ?? visitor.title
+        description = visitor.description
+        body = visitor.body
     }
-    
+
     /// Looks for and parses any YAML front matter from this Markdown.
     /// - Parameter markdown: The Markdown string to process. The remaining Markdown, once front matter has been removed.
     /// - Returns: The front-matter
@@ -72,22 +66,22 @@ public struct ParsedMarkdown: Sendable {
 
                 let key = entryParts[0].trimmingCharacters(in: .whitespaces)
                 var value = entryParts[1].trimmingCharacters(in: .whitespaces)
-                
+
                 if key == "tags" {
 //                    print(key, value)
-                    
+
 //                    let prevValue = value
                     // Poor way of supporting tag arrays
                     value = value.replacingOccurrences(of: "['", with: "")
                         .replacingOccurrences(of: "']", with: "")
-                    // keep ',' to split them later
+                        // keep ',' to split them later
                         .replacingOccurrences(of: "', '", with: "','")
 //                        .replacingOccurrences(of: "','", with: ", ")
 //                        .replacingOccurrences(of: "'", with: "")
-                    
+
 //                    print(">>\(prevValue)<<>>\(value)<<")
                 }
-                
+
                 frontMatter[key] = value
             }
 
@@ -128,7 +122,7 @@ public struct MarkdownToHTML: MarkupVisitor {
     /// Visit some markup when no other handler is suitable.
     /// - Parameter markup: The markup that is being processed.
     /// - Returns: A string to append to the output.
-    mutating public func defaultVisit(_ markup: Markdown.Markup) -> String {
+    public mutating func defaultVisit(_ markup: Markdown.Markup) -> String {
         var result = ""
 
         for child in markup.children {
@@ -141,7 +135,7 @@ public struct MarkdownToHTML: MarkupVisitor {
     /// Processes block quote markup.
     /// - Parameter blockQuote: The block quote data to process.
     /// - Returns: A HTML <blockquote> element with the block quote's children inside.
-    mutating public func visitBlockQuote(_ blockQuote: Markdown.BlockQuote) -> String {
+    public mutating func visitBlockQuote(_ blockQuote: Markdown.BlockQuote) -> String {
         var result = "<blockquote>"
 
         for child in blockQuote.children {
@@ -168,7 +162,7 @@ public struct MarkdownToHTML: MarkupVisitor {
     /// Processes emphasis markup.
     /// - Parameter emphasis: The emphasized content to process.
     /// - Returns: A HTML <em> element with the markup's children inside.
-    mutating public func visitEmphasis(_ emphasis: Markdown.Emphasis) -> String {
+    public mutating func visitEmphasis(_ emphasis: Markdown.Emphasis) -> String {
         var result = "<em>"
 
         for child in emphasis.children {
@@ -184,7 +178,7 @@ public struct MarkdownToHTML: MarkupVisitor {
     /// - Returns: A HTML <h*> element with its children inside. The exact
     /// heading level depends on the markup. If this is our first heading, we use it
     /// for the document title.
-    mutating public func visitHeading(_ heading: Markdown.Heading) -> String {
+    public mutating func visitHeading(_ heading: Markdown.Heading) -> String {
         var headingContent = ""
 
         for child in heading.children {
@@ -201,8 +195,8 @@ public struct MarkdownToHTML: MarkupVisitor {
                 return ""
             }
         }
-        
-        // Create a header identifier so content can link with #id 
+
+        // Create a header identifier so content can link with #id
         let id = headingContent
             .trimmingCharacters(in: .whitespaces)
             .replacingOccurrences(of: " ", with: "-")
@@ -234,7 +228,7 @@ public struct MarkdownToHTML: MarkupVisitor {
     /// Process inline code markup.
     /// - Parameter inlineCode: The inline code markup to process.
     /// - Returns: A HTML <code> tag containing the code.
-    mutating public func visitInlineCode(_ inlineCode: Markdown.InlineCode) -> String {
+    public mutating func visitInlineCode(_ inlineCode: Markdown.InlineCode) -> String {
         "<code>\(inlineCode.code)</code>"
     }
 
@@ -248,7 +242,7 @@ public struct MarkdownToHTML: MarkupVisitor {
     /// Processes hyperlink markup.
     /// - Parameter link: The link markup to process.
     /// - Returns: Returns a HTML <a> tag with the correct location and content.
-    mutating public func visitLink(_ link: Markdown.Link) -> String {
+    public mutating func visitLink(_ link: Markdown.Link) -> String {
         var result = #"<a href="\#(link.destination ?? "#")">"#
 
         for child in link.children {
@@ -262,7 +256,7 @@ public struct MarkdownToHTML: MarkupVisitor {
     /// Processes one item from a list.
     /// - Parameter listItem: The list item markup to process.
     /// - Returns: A HTML <li> tag containing the list item's contents.
-    mutating public func visitListItem(_ listItem: Markdown.ListItem) -> String {
+    public mutating func visitListItem(_ listItem: Markdown.ListItem) -> String {
         var result = "<li>"
 
         for child in listItem.children {
@@ -276,7 +270,7 @@ public struct MarkdownToHTML: MarkupVisitor {
     /// Processes unordered list markup.
     /// - Parameter orderedList: The unordered list markup to process.
     /// - Returns: A HTML <ol> element with the correct contents.
-    mutating public func visitOrderedList(_ orderedList: Markdown.OrderedList) -> String {
+    public mutating func visitOrderedList(_ orderedList: Markdown.OrderedList) -> String {
         var result = "<ol>"
 
         for listItem in orderedList.listItems {
@@ -293,7 +287,7 @@ public struct MarkdownToHTML: MarkupVisitor {
     /// contents directly. Otherwise, it wraps the contents in a HTML <p> element.
     /// If this is the first paragraph of text in the document we use it for the
     /// description of this document.
-    mutating public func visitParagraph(_ paragraph: Markdown.Paragraph) -> String {
+    public mutating func visitParagraph(_ paragraph: Markdown.Paragraph) -> String {
         var result = ""
         var paragraphContents = ""
 
@@ -321,7 +315,7 @@ public struct MarkdownToHTML: MarkupVisitor {
     /// Processes some strikethrough markup.
     /// - Parameter strikethrough: The strikethrough markup to process.
     /// - Returns: Content wrapped inside a HTML <s> element.
-    mutating public func visitStrikethrough(_ strikethrough: Markdown.Strikethrough) -> String {
+    public mutating func visitStrikethrough(_ strikethrough: Markdown.Strikethrough) -> String {
         var result = "<s>"
 
         for child in strikethrough.children {
@@ -336,7 +330,7 @@ public struct MarkdownToHTML: MarkupVisitor {
     /// Processes some strong markup.
     /// - Parameter strong: The strong markup to process.
     /// - Returns: Content wrapped inside a HTML <strong> element.
-    mutating public func visitStrong(_ strong: Markdown.Strong) -> String {
+    public mutating func visitStrong(_ strong: Markdown.Strong) -> String {
         var result = "<strong>"
 
         for child in strong.children {
@@ -398,7 +392,6 @@ public struct MarkdownToHTML: MarkupVisitor {
             output += "<td>"
             output += visit(child)
             output += "</td>"
-
         }
 
         output += "</tr>"
@@ -408,7 +401,7 @@ public struct MarkdownToHTML: MarkupVisitor {
     /// Processes plain text markup.
     /// - Parameter text: The plain text markup to process.
     /// - Returns: The same text that was read as input.
-    mutating public func visitText(_ text: Markdown.Text) -> String {
+    public mutating func visitText(_ text: Markdown.Text) -> String {
         text.plainText
     }
 
@@ -443,11 +436,10 @@ extension Markup {
 
 extension String {
     func poorHtmlEncoded() -> String {
-        return self
-            .replacingOccurrences(of: "&", with: "&amp;")    // Ampersand (&)
-            .replacingOccurrences(of: "<", with: "&lt;")     // Less than (<)
-            .replacingOccurrences(of: ">", with: "&gt;")     // Greater than (>)
-            .replacingOccurrences(of: "\"", with: "&quot;")  // Double quotes (")
-            .replacingOccurrences(of: "'", with: "&#39;")    // Single quote (')
+        replacingOccurrences(of: "&", with: "&amp;") // Ampersand (&)
+            .replacingOccurrences(of: "<", with: "&lt;") // Less than (<)
+            .replacingOccurrences(of: ">", with: "&gt;") // Greater than (>)
+            .replacingOccurrences(of: "\"", with: "&quot;") // Double quotes (")
+            .replacingOccurrences(of: "'", with: "&#39;") // Single quote (')
     }
 }

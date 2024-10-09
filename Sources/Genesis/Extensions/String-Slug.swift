@@ -1,24 +1,17 @@
-//
-// String-Slug.swift
-// Ignite
-// https://www.github.com/twostraws/Ignite
-// See LICENSE for license information.
-//
-
 import Foundation
 
 public extension String {
     /// A list of characters that are safe to use in URLs.
     private static let slugSafeCharacters = CharacterSet(charactersIn: """
-        0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-        abcdefghijklmnopqrstuvwxyz-
-        """)
+    0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+    abcdefghijklmnopqrstuvwxyz-
+    """)
 
     /// Attempts to convert a string to a URL-safe format.
     /// - Returns: The URL-safe version of the string, or nil if no
     /// conversion was possible.
     func convertedToSlug() -> String? {
-        let startingPoint = self.convertToDashCase()
+        let startingPoint = convertToDashCase()
 
         var result: String?
 
@@ -46,7 +39,7 @@ public extension String {
     func convertToDashCase() -> String {
         var result = ""
 
-        for (index, character) in self.enumerated() {
+        for (index, character) in enumerated() {
             if character.isUppercase && index != 0 {
                 result += "-"
             }

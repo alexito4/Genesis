@@ -1,10 +1,3 @@
-//
-// String-AbsoluteLinks.swift
-// Ignite
-// https://www.github.com/twostraws/Ignite
-// See LICENSE for license information.
-//
-
 import Foundation
 
 public extension String {
@@ -16,7 +9,7 @@ public extension String {
         root: URL
     ) -> String {
         var absolute = self
-        
+
         // Fix images.
         absolute.replace(#/src="(?!http)(?!\/)/#, with: #"src="\#(url)/"#)
 
@@ -30,7 +23,7 @@ public extension String {
         absolute.replace(#/href="(?!http)(?!\/)/#, with: #"href="\#(url)/"#)
         // Replace links that are root relative (with /)
         absolute.replace(#/href="(?!http)(\/)/#, with: #"href="\#(root)/"#)
-        
+
 //        absolute.replace(#/href="(?<path>\/[^"]+)/#) { match in
 //            let fullURL = url.appending(path: match.output.path).absoluteString
 //            return "href=\"\(fullURL)"

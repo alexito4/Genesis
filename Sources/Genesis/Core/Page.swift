@@ -5,16 +5,16 @@ public protocol Page: Sendable {
     var path: String { get }
     /// Name for the file to put in the path. Like "index.html", the default
     var fileName: String { get }
-    
+
     var priority: SitemapPriority { get }
-    
+
     func render(context: Context) async throws -> String
 }
 
 public extension Page {
     /// The default file name, can be customized for sitemaps or feeds.
     var fileName: String { "index.html" }
-    
+
     /// The default site map priority of all pages
     var priority: SitemapPriority { .default }
 }

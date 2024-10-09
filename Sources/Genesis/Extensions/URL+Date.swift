@@ -2,7 +2,7 @@ import Foundation
 
 public extension URL {
     var fileCreationDate: Date {
-        let fromFile = try? self.resourceValues(forKeys: [.creationDateKey]).creationDate
+        let fromFile = try? resourceValues(forKeys: [.creationDateKey]).creationDate
         return fromFile ?? .now
     }
 }
