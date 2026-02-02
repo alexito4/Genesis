@@ -2,7 +2,7 @@ import Foundation
 import Genesis
 import GenesisMarkdown
 
-// 1. Define a `Site`
+/// 1. Define a `Site`
 struct ExampleSite: Site {
     var name = "Example"
     var description: String? = "An example site built with Genesis"
@@ -25,10 +25,10 @@ try await context.clearBuildFolder()
 // Or you might have a more sophisticated asset pipeline that you prefer instead of this
 // try await context.copyAssets()
 
-// If your site has content defined by files like markdown blog posts, you can load that into the context.
-// For that define a `ContentLoader` conforming type
+/// If your site has content defined by files like markdown blog posts, you can load that into the context.
+/// For that define a `ContentLoader` conforming type
 struct BlogLoader: ContentLoader {
-    // Implement a load function that returns the content
+    /// Implement a load function that returns the content
     func load(context: Context) async throws -> sending [any Content] {
         // Just load the files from the directory you keep them.
         // This let's you structure your site however you want.
@@ -82,14 +82,14 @@ try await context.loadContent(from: [
     BlogLoader(),
 ])
 
-// Generate static single pages
-// Implement any type that conforms to `Page`
+/// Generate static single pages
+/// Implement any type that conforms to `Page`
 struct HomePage: Page {
-    // A Page, just like the Content, requires a path to know where it goes in the final output
+    /// A Page, just like the Content, requires a path to know where it goes in the final output
     var path: String = ""
 
-    // A page just has a render method that gives you the context and expects a String to save into a file.
-    // That's it! You can implement this however you want.
+    /// A page just has a render method that gives you the context and expects a String to save into a file.
+    /// That's it! You can implement this however you want.
     func render(context: Context) async throws -> String {
         // you could load pre-made HTML templates from the file system...
         // or use a Swift HTML DSL library...
@@ -106,7 +106,7 @@ struct HomePage: Page {
         """
     }
 
-    // Is all just normal Swift code, with very little enforced by Genesis.
+    /// Is all just normal Swift code, with very little enforced by Genesis.
     private func postsListItems(context: Context) async -> String {
         // You have access to the loaded content in the context, so you can list it in any page you want
         await context.content(of: BlogPost.self)
@@ -124,9 +124,9 @@ try await context.generateStaticPages(pages: [
     HomePage(),
 ])
 
-// Other pages are not a single static page, but a templated page instantiated from a set of data
-// We can create providers to create as many pages as needed dynamically
-// For example we can make a `PageProvider` that create a `Page` for each loaded `BlogPost`
+/// Other pages are not a single static page, but a templated page instantiated from a set of data
+/// We can create providers to create as many pages as needed dynamically
+/// For example we can make a `PageProvider` that create a `Page` for each loaded `BlogPost`
 struct BlogPostProvider: PageProvider {
     func source(context: Genesis.Context) async throws -> [any Page] {
         // The context has a few helpers to find the content you want
@@ -139,12 +139,12 @@ struct BlogPostProvider: PageProvider {
 try await context.generateContentPages(providers: [
     BlogPostProvider(),
 ])
-// A blog post page is just like any other page, but since a provider creates an instance for each content
-// you can have properties that are specific for each instance of the content.
+/// A blog post page is just like any other page, but since a provider creates an instance for each content
+/// you can have properties that are specific for each instance of the content.
 struct BlogPostPage: Page {
     var path: String
 
-    // In this case we keep the blog post around so we can use it for rendering the page
+    /// In this case we keep the blog post around so we can use it for rendering the page
     var post: BlogPost
 
     func render(context: Genesis.Context) async throws -> String {

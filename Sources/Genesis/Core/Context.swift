@@ -264,8 +264,8 @@ public extension Context {
         allContent.compactMap { $0 as? T }
     }
 
-    // for when you want to filter to a protocol
-    // it should inherit from Content protocol, but not sure how to pull it off with the type system right now since constrainint it means that you can't pass the protocol.sself since that doesn't conform to the protocol.
+    /// for when you want to filter to a protocol
+    /// it should inherit from Content protocol, but not sure how to pull it off with the type system right now since constrainint it means that you can't pass the protocol.sself since that doesn't conform to the protocol.
     func content<T>(of type: T.Type) -> [T] {
         allContent.compactMap { $0 as? T }
     }

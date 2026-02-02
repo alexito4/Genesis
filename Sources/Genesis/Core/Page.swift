@@ -13,10 +13,14 @@ public protocol Page: Sendable {
 
 public extension Page {
     /// The default file name, can be customized for sitemaps or feeds.
-    var fileName: String { "index.html" }
+    var fileName: String {
+        "index.html"
+    }
 
     /// The default site map priority of all pages
-    var priority: SitemapPriority { .default }
+    var priority: SitemapPriority {
+        .default
+    }
 }
 
 /// A provider that reads content from the `Context` to create pages.

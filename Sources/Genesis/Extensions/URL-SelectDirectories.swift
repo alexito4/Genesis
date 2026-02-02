@@ -19,7 +19,7 @@ public extension URL {
                                               build: packageURL.deletingLastPathComponent())
             }
         } while currentURL.path() != "/"
-        
+
         // When build as binary
         currentURL = URL(filePath: FileManager.default.currentDirectoryPath)
         while currentURL.path() != "/" {
@@ -28,7 +28,7 @@ public extension URL {
                 return SourceBuildDirectories(source: packageURL.deletingLastPathComponent(),
                                               build: packageURL.deletingLastPathComponent())
             }
-            
+
             currentURL = currentURL.deletingLastPathComponent()
         }
 
