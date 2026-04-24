@@ -44,7 +44,7 @@ public struct ParsedMarkdown: Sendable {
         }
         frontMatter = Self.processMetadata(for: &markdown)
         document = Document(parsing: markdown)
-        let visitor = MarkdownToHTML(document: document, removeTitleFromBody: true)
+        let visitor = MarkdownToHTML(document: document, firstHeadingBehaviour: .removeIfNoExistingTitle(existingTitle: frontMatter["title"]))
         title = frontMatter["title"] ?? visitor.title
         description = visitor.description
         body = visitor.body
@@ -91,6 +91,16 @@ public struct ParsedMarkdown: Sendable {
     }
 }
 
+/// Controls how the first heading in a Markdown document is handled during rendering.
+public enum FirstHeadingBehaviour {
+    /// All headings are rendered into the body as normal.
+    case nothing
+    /// If `existingTitle` is nil or empty, the first heading is captured as the document
+    /// title and stripped from the rendered body. If an existing title is provided,
+    /// the heading is left in the body untouched.
+    case removeIfNoExistingTitle(existingTitle: String?)
+}
+
 /// A simple Markdown to HTML parser powered by Apple's swift-markdown.
 public struct MarkdownToHTML: MarkupVisitor {
     /// The title of this document.
@@ -102,20 +112,24 @@ public struct MarkdownToHTML: MarkupVisitor {
     /// The body text of this file, which includes its title by default.
     public var body = ""
 
-    /// Whether to remove the Markdown title from its body. This only applies
-    /// to the first heading.
-    public var removeTitleFromBody: Bool
+    /// How to handle the first heading found in the document.
+    public var firstHeadingBehaviour: FirstHeadingBehaviour
 
     /// Parses Markdown provided as a direct input string.
     /// - Parameters:
-    ///   - markdown: The Markdown to parse.
-    ///   - removeTitleFromBody: True if the first title should be removed
-    ///   from the final `body` property.
+    ///   - document: The parsed Markdown document tree to render.
+    ///   - firstHeadingBehaviour: Controls whether the first heading is captured as the
+    ///     document title and removed from the body. Use `.removeIfNoExistingTitle` when
+    ///     the document may define its title via a heading rather than front matter, and
+    ///     pass the front matter title (if any) so the heading is preserved when one exists.
     public init(
         document: Document,
-        removeTitleFromBody: Bool
+        firstHeadingBehaviour: FirstHeadingBehaviour = .nothing
     ) {
-        self.removeTitleFromBody = removeTitleFromBody
+        self.firstHeadingBehaviour = firstHeadingBehaviour
+        if case .removeIfNoExistingTitle(let existingTitle) = firstHeadingBehaviour {
+            self.title = existingTitle ?? ""
+        }
         body = visit(document)
     }
 
@@ -185,15 +199,10 @@ public struct MarkdownToHTML: MarkupVisitor {
             headingContent += visit(child)
         }
 
-        // If we don't already have a document title, use this as the document's title.
-        if title.isEmpty {
+        // If we have no title yet and are asked to capture one from headings, do so now.
+        if case .removeIfNoExistingTitle = firstHeadingBehaviour, title.isEmpty {
             title = headingContent
-
-            // If we've been asked to strip out the title from
-            // the rendered body, send back nothing here.
-            if removeTitleFromBody {
-                return ""
-            }
+            return ""
         }
 
         // Create a header identifier so content can link with #id
