@@ -147,17 +147,91 @@ public struct MarkdownToHTML: MarkupVisitor {
     }
 
     /// Processes block quote markup.
+    /// Supports Obsidian callout format: if the blockquote's first line starts with
+    /// a recognised `[!TYPE]` tag, it is rendered as a specialised element instead
+    /// of a plain `<blockquote>`.
+    ///
+    /// Supported types:
+    /// - `[!NOTE]`, `[!NOTE]-`, `[!NOTE]+` — collapsible `<details>`/`<summary>`.
+    ///   `-` collapses by default, `+` expands by default, no suffix collapses by default.
+    /// - `[!PROMO]` — styled promotion box rendered as a `<div class="callout-promo">`.
+    ///
+    /// All other blockquotes fall through to standard `<blockquote>` rendering.
     /// - Parameter blockQuote: The block quote data to process.
-    /// - Returns: A HTML <blockquote> element with the block quote's children inside.
+    /// - Returns: A HTML element with the block quote's children inside.
     public mutating func visitBlockQuote(_ blockQuote: Markdown.BlockQuote) -> String {
+        if let callout = tryRenderCallout(blockQuote) {
+            return callout
+        }
         var result = "<blockquote>"
-
         for child in blockQuote.children {
             result += visit(child)
         }
-
         result += "</blockquote>"
         return result
+    }
+
+    private mutating func tryRenderCallout(_ blockQuote: Markdown.BlockQuote) -> String? {
+        let children = Array(blockQuote.children)
+        guard let firstParagraph = children.first as? Markdown.Paragraph else { return nil }
+        let inlines = Array(firstParagraph.children)
+        guard let firstText = inlines.first as? Markdown.Text else { return nil }
+
+        let raw = firstText.plainText
+
+        if raw.hasPrefix("[!NOTE]") {
+            return renderNoteCallout(raw: raw, inlines: inlines, children: children)
+        } else if raw.hasPrefix("[!PROMO]") {
+            return renderPromoCallout(raw: raw, inlines: inlines, children: children)
+        }
+
+        return nil
+    }
+
+    private mutating func renderNoteCallout(raw: String, inlines: [any Markup], children: [any Markup]) -> String {
+        let rest = String(raw.dropFirst("[!NOTE]".count))
+        let openAttr: String
+        let titlePrefix: String
+
+        if rest.hasPrefix("-") {
+            openAttr = ""
+            titlePrefix = String(rest.dropFirst().drop(while: { $0.isWhitespace }))
+        } else if rest.hasPrefix("+") {
+            openAttr = " open"
+            titlePrefix = String(rest.dropFirst().drop(while: { $0.isWhitespace }))
+        } else {
+            openAttr = ""
+            titlePrefix = String(rest.drop(while: { $0.isWhitespace }))
+        }
+
+        var titleHTML = titlePrefix.poorHtmlEncoded()
+        for inline in inlines.dropFirst() {
+            titleHTML += visit(inline)
+        }
+
+        var bodyHTML = ""
+        for child in children.dropFirst() {
+            bodyHTML += visit(child)
+        }
+
+        return "<details\(openAttr)><summary>\(titleHTML)</summary>\(bodyHTML)</details>"
+    }
+
+    private mutating func renderPromoCallout(raw: String, inlines: [any Markup], children: [any Markup]) -> String {
+        let rest = String(raw.dropFirst("[!PROMO]".count))
+        let titlePrefix = String(rest.drop(while: { $0.isWhitespace }))
+
+        var titleHTML = titlePrefix.poorHtmlEncoded()
+        for inline in inlines.dropFirst() {
+            titleHTML += visit(inline)
+        }
+
+        var bodyHTML = ""
+        for child in children.dropFirst() {
+            bodyHTML += visit(child)
+        }
+
+        return #"<div class="callout-promo"><p class="callout-promo-label">\#(titleHTML)</p><div class="callout-promo-body">\#(bodyHTML)</div></div>"#
     }
 
     /// Processes code block markup.
