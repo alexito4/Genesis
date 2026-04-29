@@ -155,6 +155,8 @@ public struct MarkdownToHTML: MarkupVisitor {
     /// - `[!NOTE]`, `[!NOTE]-`, `[!NOTE]+` — collapsible `<details>`/`<summary>`.
     ///   `-` collapses by default, `+` expands by default, no suffix collapses by default.
     /// - `[!PROMO]` — styled promotion box rendered as a `<div class="callout-promo">`.
+    /// - `[!TIP]` — subtle hint box rendered as a `<div class="callout-tip">`.
+    ///   Optional inline title on the first line; body is all remaining paragraphs.
     ///
     /// All other blockquotes fall through to standard `<blockquote>` rendering.
     /// - Parameter blockQuote: The block quote data to process.
@@ -183,6 +185,8 @@ public struct MarkdownToHTML: MarkupVisitor {
             return renderNoteCallout(raw: raw, inlines: inlines, children: children)
         } else if raw.hasPrefix("[!PROMO]") {
             return renderPromoCallout(raw: raw, inlines: inlines, children: children)
+        } else if raw.hasPrefix("[!TIP]") {
+            return renderTipCallout(raw: raw, inlines: inlines, children: children)
         }
 
         return nil
@@ -232,6 +236,25 @@ public struct MarkdownToHTML: MarkupVisitor {
         }
 
         return #"<div class="callout-promo"><p class="callout-promo-label">\#(titleHTML)</p><div class="callout-promo-body">\#(bodyHTML)</div></div>"#
+    }
+
+    private mutating func renderTipCallout(raw: String, inlines: [any Markup], children: [any Markup]) -> String {
+        let rest = String(raw.dropFirst("[!TIP]".count))
+        let titlePrefix = String(rest.drop(while: { $0.isWhitespace }))
+
+        var bodyHTML = ""
+        if !titlePrefix.isEmpty || inlines.count > 1 {
+            var firstParaHTML = titlePrefix.poorHtmlEncoded()
+            for inline in inlines.dropFirst() {
+                firstParaHTML += visit(inline)
+            }
+            bodyHTML += "<p>\(firstParaHTML)</p>"
+        }
+        for child in children.dropFirst() {
+            bodyHTML += visit(child)
+        }
+
+        return #"<div class="callout-tip">\#(bodyHTML)</div>"#
     }
 
     /// Processes code block markup.
